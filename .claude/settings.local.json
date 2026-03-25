@@ -1,0 +1,39 @@
+{
+  "env": {},
+  "permissions": {
+    "allow": [
+      "Bash(bun *)",
+      "Bash(git *)",
+      "Bash(gh *)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Bash(claude mcp:*)",
+      "Skill(update-config)",
+      "mcp__supabase__list_tables",
+      "Bash(npx skills:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(find /c/Projetos/Tecnocell -maxdepth 3 -type d ! -path */node_modules/* ! -path */.next/* ! -path */.git/*)",
+      "Bash(find /c/Projetos/Tecnocell -maxdepth 2 -type f ! -path */node_modules/*)",
+      "Bash(find /c/Projetos/Tecnocell/.claude -type f ! -path */node_modules/*)",
+      "mcp__supabase__get_publishable_keys",
+      "mcp__supabase__get_project_url",
+      "Bash(bunx tailwindcss:*)",
+      "Bash(start:*)",
+      "mcp__supabase__apply_migration",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_network_requests",
+      "mcp__supabase__execute_sql",
+      "mcp__playwright__browser_take_screenshot"
+    ],
+    "deny": []
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}
