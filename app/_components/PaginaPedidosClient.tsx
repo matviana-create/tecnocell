@@ -98,10 +98,12 @@ export default function PaginaPedidosClient({ pecas, lojaInfo, clienteInfo }: Pr
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-8 text-center">
-        {lojaInfo.logo_url && (
-          <img src={lojaInfo.logo_url} alt={lojaInfo.nome} className="h-16 w-auto mx-auto mb-3 object-contain" />
-        )}
-        <h1 className="text-3xl font-bold text-gray-900">{lojaInfo.nome}</h1>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          {lojaInfo.logo_url && (
+            <img src={lojaInfo.logo_url} alt={lojaInfo.nome} className="h-12 w-12 rounded-full object-cover border border-gray-100 shadow-sm" />
+          )}
+          <h1 className="text-3xl font-bold text-gray-900">{lojaInfo.nome}</h1>
+        </div>
         {clienteIdentificado && cliente.nome ? (
           <p className="text-gray-500 mt-1">
             Olá, <span className="font-semibold text-gray-700">{cliente.nome.split(' ')[0]}</span>! Selecione as peças que deseja pedir.
