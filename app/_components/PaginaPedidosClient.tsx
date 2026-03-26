@@ -87,8 +87,6 @@ export default function PaginaPedidosClient({ pecas, lojaInfo, clienteInfo }: Pr
 
     const mensagem =
       `🛒 *PEDIDO ${lojaInfo.nome.toUpperCase()}*\n\n` +
-      `*Cliente:* ${cliente.nome}\n` +
-      `*Telefone:* ${cliente.telefone}\n\n` +
       `*Itens:*\n${linhasItens}\n\n` +
       `*Total: ${formatarPreco(total)}*`
 
