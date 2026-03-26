@@ -63,7 +63,12 @@ export default async function Page({
     return (
       <PaginaPedidosClient
         pecas={(pecas ?? []) as Peca[]}
-        lojaInfo={{ nome: loja.nome, whatsapp: loja.whatsapp }}
+        lojaInfo={{
+          nome: loja.nome,
+          whatsapp: loja.whatsapp,
+          logo_url: loja.logo_url ?? null,
+          cor_primaria: loja.cor_primaria ?? '#22c55e',
+        }}
         clienteInfo={clienteData ? {
           nome: clienteData.nome_cliente ?? '',
           telefone: clienteData.celular || clienteData.telefone || '',

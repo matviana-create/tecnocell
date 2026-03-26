@@ -10,6 +10,8 @@ const VAZIO: Omit<Loja, 'id' | 'created_at' | 'ativo'> = {
   supabase_url: '',
   supabase_anon_key: '',
   dominio: '',
+  logo_url: '',
+  cor_primaria: '#22c55e',
 }
 
 export default function AdminClient({ lojas: lojasIniciais }: { lojas: Loja[] }) {
@@ -145,6 +147,7 @@ export default function AdminClient({ lojas: lojasIniciais }: { lojas: Loja[] })
                 { key: 'supabase_url', label: 'Supabase URL', placeholder: 'https://xxx.supabase.co' },
                 { key: 'supabase_anon_key', label: 'Supabase Anon Key', placeholder: 'eyJ...' },
                 { key: 'dominio', label: 'Domínio customizado', placeholder: 'pedidos.outra-loja.com.br' },
+                { key: 'logo_url', label: 'URL da logo', placeholder: 'https://exemplo.com/logo.png' },
               ].map(({ key, label, placeholder }) => (
                 <div key={key}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -157,6 +160,19 @@ export default function AdminClient({ lojas: lojasIniciais }: { lojas: Loja[] })
                   />
                 </div>
               ))}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cor principal</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={form.cor_primaria ?? '#22c55e'}
+                    onChange={(e) => setForm((f) => ({ ...f, cor_primaria: e.target.value }))}
+                    className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5"
+                  />
+                  <span className="text-sm text-gray-500">{form.cor_primaria ?? '#22c55e'}</span>
+                </div>
+              </div>
 
               <div className="flex items-center gap-2 pt-1">
                 <input

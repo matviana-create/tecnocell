@@ -32,4 +32,6 @@ export type Loja = {
   supabase_anon_key: string
   dominio: string | null
   ativo: boolean
+  logo_url: string | null
+  cor_primaria: string | null
 }
