@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { headers } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
 import PaginaPedidosClient from './_components/PaginaPedidosClient'
