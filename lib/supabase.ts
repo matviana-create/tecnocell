@@ -1,10 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Cliente da PLATAFORMA (servidor apenas) — armazena a tabela lojas
+// Cliente da PLATAFORMA para leitura (anon key)
 export function getSupabasePlataforma() {
   return createClient(
     process.env.PLATFORM_SUPABASE_URL!,
     process.env.PLATFORM_SUPABASE_ANON_KEY!
+  )
+}
+
+// Cliente da PLATAFORMA para operações admin (service role — bypassa RLS)
+export function getSupabasePlataformaAdmin() {
+  return createClient(
+    process.env.PLATFORM_SUPABASE_URL!,
+    process.env.PLATFORM_SUPABASE_SERVICE_KEY!
   )
 }
 
