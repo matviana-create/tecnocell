@@ -39,7 +39,7 @@ export default async function Page({
     // 2. Cria cliente Supabase da loja (server-side — a key nunca vai ao browser)
     const lojaDb = createClient(
       loja.supabase_url.trim(),
-      loja.supabase_anon_key.trim()
+      loja.supabase_anon_key.replace(/\s/g, '')
     )
 
     // 3. Busca peças e cliente em paralelo
