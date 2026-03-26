@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { supabasePlataforma as supabase } from '@/lib/supabase'
+import { getSupabasePlataforma } from '@/lib/supabase'
 
 async function verificarAuth() {
   const cookieStore = await cookies()
@@ -9,31 +9,28 @@ async function verificarAuth() {
 
 export async function POST(request: Request) {
   if (!(await verificarAuth())) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
-
+  const supabase = getSupabasePlataforma()
   const body = await request.json()
   const { data, error } = await supabase.from('lojas').insert(body).select().single()
-
   if (error) return NextResponse.json({ erro: error.message }, { status: 400 })
   return NextResponse.json(data)
 }
 
 export async function PUT(request: Request) {
   if (!(await verificarAuth())) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
-
+  const supabase = getSupabasePlataforma()
   const body = await request.json()
   const { id, ...dados } = body
   const { data, error } = await supabase.from('lojas').update(dados).eq('id', id).select().single()
-
   if (error) return NextResponse.json({ erro: error.message }, { status: 400 })
   return NextResponse.json(data)
 }
 
 export async function DELETE(request: Request) {
   if (!(await verificarAuth())) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
-
+  const supabase = getSupabasePlataforma()
   const { id } = await request.json()
   const { error } = await supabase.from('lojas').delete().eq('id', id)
-
   if (error) return NextResponse.json({ erro: error.message }, { status: 400 })
   return NextResponse.json({ ok: true })
 }

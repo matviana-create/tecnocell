@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { supabasePlataforma as supabase } from '@/lib/supabase'
+import { getSupabasePlataforma } from '@/lib/supabase'
 import AdminClient from './_components/AdminClient'
 
 export default async function AdminPage() {
@@ -11,6 +11,7 @@ export default async function AdminPage() {
     redirect('/admin/login')
   }
 
+  const supabase = getSupabasePlataforma()
   const { data: lojas } = await supabase
     .from('lojas')
     .select('*')

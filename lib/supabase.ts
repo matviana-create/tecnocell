@@ -1,10 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Cliente da PLATAFORMA (servidor apenas) — armazena a tabela lojas
-export const supabasePlataforma = createClient(
-  process.env.PLATFORM_SUPABASE_URL!,
-  process.env.PLATFORM_SUPABASE_ANON_KEY!
-)
+export function getSupabasePlataforma() {
+  return createClient(
+    process.env.PLATFORM_SUPABASE_URL!,
+    process.env.PLATFORM_SUPABASE_ANON_KEY!
+  )
+}
 
 // Cria um cliente dinâmico para o Supabase de cada loja
 export function createLojaClient(url: string, anonKey: string) {
