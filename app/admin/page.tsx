@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabasePlataforma as supabase } from '@/lib/supabase'
 import AdminClient from './_components/AdminClient'
 
 export default async function AdminPage() {

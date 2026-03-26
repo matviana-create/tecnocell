@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { supabase } from '@/lib/supabase'
+import { supabasePlataforma as supabase } from '@/lib/supabase'
 
 async function verificarAuth() {
   const cookieStore = await cookies()

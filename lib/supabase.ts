@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Cliente central (Tecnocell) — usado para buscar lojas
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Cliente da PLATAFORMA (servidor apenas) — armazena a tabela lojas
+export const supabasePlataforma = createClient(
+  process.env.PLATFORM_SUPABASE_URL!,
+  process.env.PLATFORM_SUPABASE_ANON_KEY!
 )
 
-// Cria um cliente dinâmico para qualquer loja
+// Cria um cliente dinâmico para o Supabase de cada loja
 export function createLojaClient(url: string, anonKey: string) {
   return createClient(url, anonKey)
 }
