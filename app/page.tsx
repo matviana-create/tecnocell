@@ -1,9 +1,12 @@
 export const dynamic = 'force-dynamic'
 
 import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import PaginaPedidosClient from './_components/PaginaPedidosClient'
 import type { Peca } from '@/lib/supabase'
+
+const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? 'tecnocell-one.vercel.app'
 
 export default async function Page({
   searchParams,
@@ -13,17 +16,22 @@ export default async function Page({
   const headersList = await headers()
   const hostname = headersList.get('x-hostname') ?? headersList.get('host') ?? ''
   const dominioLimpo = hostname.split(':')[0]
+
+  // Domínio raiz → redireciona para o painel admin
+  if (dominioLimpo === ROOT_DOMAIN || dominioLimpo === 'localhost') {
+    redirect('/admin')
+  }
+
   const { cliente: clienteId } = await searchParams
 
   const platformUrl = process.env.PLATFORM_SUPABASE_URL
   const platformKey = process.env.PLATFORM_SUPABASE_ANON_KEY
 
   if (!platformUrl || !platformKey) {
-    return <Erro mensagem="Variáveis de ambiente ausentes" detalhe={dominioLimpo} />
+    return <Erro mensagem="Variáveis de ambiente ausentes" />
   }
 
   try {
-    // 1. Busca loja na plataforma
     const plataforma = createClient(platformUrl, platformKey)
     const { data: loja, error: lojaError } = await plataforma
       .from('lojas')
@@ -36,13 +44,11 @@ export default async function Page({
       return <Erro mensagem={`Loja não encontrada: ${dominioLimpo}`} detalhe={lojaError?.message} />
     }
 
-    // 2. Cria cliente Supabase da loja (server-side — a key nunca vai ao browser)
     const lojaDb = createClient(
       loja.supabase_url.trim(),
       loja.supabase_anon_key.replace(/\s/g, '')
     )
 
-    // 3. Busca peças e cliente em paralelo
     const [{ data: pecas }, { data: clienteData }] = await Promise.all([
       lojaDb
         .from('estoque')

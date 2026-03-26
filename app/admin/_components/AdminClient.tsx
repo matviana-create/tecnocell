@@ -71,7 +71,7 @@ export default function AdminClient({ lojas: lojasIniciais }: { lojas: Loja[] })
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Painel Admin</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Cell Sistem</h1>
             <p className="text-sm text-gray-500 mt-0.5">{lojas.length} loja{lojas.length !== 1 ? 's' : ''} cadastrada{lojas.length !== 1 ? 's' : ''}</p>
           </div>
           <button
