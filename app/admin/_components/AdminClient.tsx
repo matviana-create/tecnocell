@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useRef } from 'react'
 import type { Loja } from '@/lib/supabase'
 
 const VAZIO: Omit<Loja, 'id' | 'created_at' | 'ativo'> = {
@@ -10,17 +9,18 @@ const VAZIO: Omit<Loja, 'id' | 'created_at' | 'ativo'> = {
   supabase_url: '',
   supabase_anon_key: '',
   dominio: '',
-  logo_url: '',
+  logo_url: null,
   cor_primaria: '#22c55e',
 }
 
 export default function AdminClient({ lojas: lojasIniciais }: { lojas: Loja[] }) {
-  const router = useRouter()
   const [lojas, setLojas] = useState<Loja[]>(lojasIniciais)
   const [modal, setModal] = useState<'novo' | 'editar' | null>(null)
   const [form, setForm] = useState<Partial<Loja>>(VAZIO)
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
+  const [uploadando, setUploadando] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   function abrirNovo() {
     setForm(VAZIO)
@@ -32,6 +32,22 @@ export default function AdminClient({ lojas: lojasIniciais }: { lojas: Loja[] })
     setForm(loja)
     setErro('')
     setModal('editar')
+  }
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadando(true)
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+    const data = await res.json()
+    if (res.ok) {
+      setForm((f) => ({ ...f, logo_url: data.url }))
+    } else {
+      setErro(data.erro ?? 'Erro ao fazer upload.')
+    }
+    setUploadando(false)
   }
 
   async function salvar() {
@@ -92,24 +108,31 @@ export default function AdminClient({ lojas: lojasIniciais }: { lojas: Loja[] })
           )}
           {lojas.map((loja) => (
             <div key={loja.id} className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-gray-900">{loja.nome}</h3>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${loja.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                    {loja.ativo ? 'ativo' : 'inativo'}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-500 mt-0.5">WhatsApp: {loja.whatsapp}</p>
-                {loja.dominio && (
-                  <p className="text-xs text-blue-500 mt-0.5 truncate">{loja.dominio}</p>
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                {loja.logo_url && (
+                  <img src={loja.logo_url} alt={loja.nome} className="w-10 h-10 rounded-lg object-contain border border-gray-100" />
                 )}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    {loja.cor_primaria && (
+                      <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: loja.cor_primaria }} />
+                    )}
+                    <h3 className="font-semibold text-gray-900">{loja.nome}</h3>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${loja.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {loja.ativo ? 'ativo' : 'inativo'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-0.5">WhatsApp: {loja.whatsapp}</p>
+                  {loja.dominio && (
+                    <p className="text-xs text-blue-500 mt-0.5 truncate">{loja.dominio}</p>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {loja.dominio && (
                   <button
                     onClick={() => copiarUrl(loja.dominio!)}
                     className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors"
-                    title="Copiar URL"
                   >
                     Copiar URL
                   </button>
@@ -132,10 +155,9 @@ export default function AdminClient({ lojas: lojasIniciais }: { lojas: Loja[] })
         </div>
       </div>
 
-      {/* Modal */}
       {modal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 my-4">
             <h2 className="text-lg font-bold text-gray-900 mb-5">
               {modal === 'novo' ? 'Nova loja' : 'Editar loja'}
             </h2>
@@ -146,8 +168,7 @@ export default function AdminClient({ lojas: lojasIniciais }: { lojas: Loja[] })
                 { key: 'whatsapp', label: 'WhatsApp (com DDI)', placeholder: '5511999998888' },
                 { key: 'supabase_url', label: 'Supabase URL', placeholder: 'https://xxx.supabase.co' },
                 { key: 'supabase_anon_key', label: 'Supabase Anon Key', placeholder: 'eyJ...' },
-                { key: 'dominio', label: 'Domínio customizado', placeholder: 'pedidos.outra-loja.com.br' },
-                { key: 'logo_url', label: 'URL da logo', placeholder: 'https://exemplo.com/logo.png' },
+                { key: 'dominio', label: 'Domínio', placeholder: 'pedidos.outra-loja.com.br' },
               ].map(({ key, label, placeholder }) => (
                 <div key={key}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -161,6 +182,51 @@ export default function AdminClient({ lojas: lojasIniciais }: { lojas: Loja[] })
                 </div>
               ))}
 
+              {/* Logo upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Logo da loja</label>
+                <div className="flex items-center gap-3">
+                  {form.logo_url ? (
+                    <div className="relative">
+                      <img src={form.logo_url} alt="Logo" className="w-16 h-16 rounded-xl object-contain border border-gray-200 bg-gray-50" />
+                      <button
+                        onClick={() => setForm((f) => ({ ...f, logo_url: null }))}
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center"
+                      >×</button>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-gray-50"
+                    >
+                      {uploadando ? (
+                        <span className="text-xs text-gray-400">...</span>
+                      ) : (
+                        <span className="text-2xl text-gray-300">+</span>
+                      )}
+                    </div>
+                  )}
+                  <div>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadando}
+                      className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    >
+                      {uploadando ? 'Enviando...' : form.logo_url ? 'Trocar logo' : 'Selecionar arquivo'}
+                    </button>
+                    <p className="text-xs text-gray-400 mt-1">PNG, JPG ou SVG</p>
+                  </div>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+              </div>
+
+              {/* Cor principal */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Cor principal</label>
                 <div className="flex items-center gap-3">
@@ -197,7 +263,7 @@ export default function AdminClient({ lojas: lojasIniciais }: { lojas: Loja[] })
               </button>
               <button
                 onClick={salvar}
-                disabled={salvando}
+                disabled={salvando || uploadando}
                 className="flex-1 bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors"
               >
                 {salvando ? 'Salvando...' : 'Salvar'}

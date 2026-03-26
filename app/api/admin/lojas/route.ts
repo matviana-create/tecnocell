@@ -11,9 +11,9 @@ export async function POST(request: Request) {
   if (!(await verificarAuth())) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
   const supabase = getSupabasePlataforma()
   const body = await request.json()
-  const { data, error } = await supabase.from('lojas').insert(body).select().single()
+  const { data, error } = await supabase.from('lojas').insert(body).select()
   if (error) return NextResponse.json({ erro: error.message }, { status: 400 })
-  return NextResponse.json(data)
+  return NextResponse.json(data?.[0] ?? {})
 }
 
 export async function PUT(request: Request) {
@@ -21,9 +21,11 @@ export async function PUT(request: Request) {
   const supabase = getSupabasePlataforma()
   const body = await request.json()
   const { id, ...dados } = body
-  const { data, error } = await supabase.from('lojas').update(dados).eq('id', id).select().single()
+  const { error } = await supabase.from('lojas').update(dados).eq('id', id)
   if (error) return NextResponse.json({ erro: error.message }, { status: 400 })
-  return NextResponse.json(data)
+  // Busca a loja atualizada
+  const { data } = await supabase.from('lojas').select('*').eq('id', id).single()
+  return NextResponse.json(data ?? { id })
 }
 
 export async function DELETE(request: Request) {
