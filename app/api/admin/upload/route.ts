@@ -21,12 +21,12 @@ export async function POST(request: Request) {
 
   const supabase = getSupabasePlataforma()
   const { error } = await supabase.storage
-    .from('logos')
+    .from('logo')
     .upload(fileName, buffer, { contentType: file.type, upsert: true })
 
   if (error) return NextResponse.json({ erro: error.message }, { status: 400 })
 
-  const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(fileName)
+  const { data: { publicUrl } } = supabase.storage.from('logo').getPublicUrl(fileName)
 
   return NextResponse.json({ url: publicUrl })
 }
