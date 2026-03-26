@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Pedidos — Tecnocell',
-  description: 'Faça seu pedido de peças para celular',
+  title: 'Cell Sistem',
+  description: 'Plataforma de pedidos para lojas de celular',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
