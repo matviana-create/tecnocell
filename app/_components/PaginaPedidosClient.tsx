@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState, useMemo, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { createLojaClient, type Peca, type Loja } from '@/lib/supabase'
+import { useState, useMemo, Suspense } from 'react'
+import type { Peca } from '@/lib/supabase'
 
 type ItemCarrinho = Peca & { quantidade: number }
 
@@ -18,49 +17,21 @@ function formatarTelefone(valor: string) {
   return `(${nums.slice(0, 2)}) ${nums.slice(2, 7)}-${nums.slice(7)}`
 }
 
-function PedidosInner({ loja }: { loja: Loja }) {
-  const searchParams = useSearchParams()
-  const clienteId = searchParams.get('cliente')
+type Props = {
+  pecas: Peca[]
+  lojaInfo: { nome: string; whatsapp: string }
+  clienteInfo: { nome: string; telefone: string } | null
+}
 
-  const db = useMemo(
-    () => createLojaClient(loja.supabase_url, loja.supabase_anon_key),
-    [loja.supabase_url, loja.supabase_anon_key]
-  )
-
-  const [pecas, setPecas] = useState<Peca[]>([])
-  const [carregando, setCarregando] = useState(true)
+export default function PaginaPedidosClient({ pecas, lojaInfo, clienteInfo }: Props) {
   const [busca, setBusca] = useState('')
   const [carrinho, setCarrinho] = useState<Map<number, number>>(new Map())
-  const [cliente, setCliente] = useState({ nome: '', telefone: '' })
-  const [clienteIdentificado, setClienteIdentificado] = useState(false)
+  const [cliente, setCliente] = useState({
+    nome: clienteInfo?.nome ?? '',
+    telefone: clienteInfo?.telefone ?? '',
+  })
 
-  useEffect(() => {
-    async function init() {
-      const [{ data: pecasData }, { data: clienteData }] = await Promise.all([
-        db
-          .from('estoque')
-          .select('tiny_id, nome, codigo, preco, preco_promocional, unidade, estoque, situacao')
-          .eq('situacao', 'A')
-          .order('nome'),
-        clienteId
-          ? db.from('clientes').select('nome_cliente, celular, telefone').eq('id_tiny', clienteId).single()
-          : Promise.resolve({ data: null }),
-      ])
-
-      if (pecasData) setPecas(pecasData as Peca[])
-
-      if (clienteData) {
-        setCliente({
-          nome: clienteData.nome_cliente ?? '',
-          telefone: clienteData.celular || clienteData.telefone || '',
-        })
-        setClienteIdentificado(true)
-      }
-
-      setCarregando(false)
-    }
-    init()
-  }, [db, clienteId])
+  const clienteIdentificado = clienteInfo !== null
 
   const pecasFiltradas = useMemo(() => {
     if (!busca.trim()) return pecas
@@ -114,19 +85,19 @@ function PedidosInner({ loja }: { loja: Loja }) {
       .join('\n')
 
     const mensagem =
-      `🛒 *PEDIDO ${loja.nome.toUpperCase()}*\n\n` +
+      `🛒 *PEDIDO ${lojaInfo.nome.toUpperCase()}*\n\n` +
       `*Cliente:* ${cliente.nome}\n` +
       `*Telefone:* ${cliente.telefone}\n\n` +
       `*Itens:*\n${linhasItens}\n\n` +
       `*Total: ${formatarPreco(total)}*`
 
-    window.open(`https://wa.me/${loja.whatsapp}?text=${encodeURIComponent(mensagem)}`, '_blank')
+    window.open(`https://wa.me/${lojaInfo.whatsapp}?text=${encodeURIComponent(mensagem)}`, '_blank')
   }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-900">{loja.nome}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{lojaInfo.nome}</h1>
         {clienteIdentificado && cliente.nome ? (
           <p className="text-gray-500 mt-1">
             Olá, <span className="font-semibold text-gray-700">{cliente.nome.split(' ')[0]}</span>! Selecione as peças que deseja pedir.
@@ -182,9 +153,7 @@ function PedidosInner({ loja }: { loja: Loja }) {
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-green-400"
             />
 
-            {carregando ? (
-              <div className="text-center py-12 text-gray-400">Carregando peças...</div>
-            ) : pecasFiltradas.length === 0 ? (
+            {pecasFiltradas.length === 0 ? (
               <div className="text-center py-12 text-gray-400">Nenhuma peça encontrada.</div>
             ) : (
               <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
@@ -217,21 +186,14 @@ function PedidosInner({ loja }: { loja: Loja }) {
                           )}
                         </div>
                       </div>
-
                       <div className="flex items-center gap-2">
                         {noCarrinho && (
                           <>
-                            <button
-                              onClick={() => alterarQuantidade(peca, -1)}
-                              className="w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-600 text-lg leading-none flex items-center justify-center hover:bg-red-50 hover:border-red-300 transition-colors"
-                            >−</button>
+                            <button onClick={() => alterarQuantidade(peca, -1)} className="w-7 h-7 rounded-full border border-gray-300 bg-white text-gray-600 text-lg leading-none flex items-center justify-center hover:bg-red-50 hover:border-red-300 transition-colors">−</button>
                             <span className="w-6 text-center text-sm font-semibold text-gray-800">{qtd}</span>
                           </>
                         )}
-                        <button
-                          onClick={() => alterarQuantidade(peca, 1)}
-                          className="w-7 h-7 rounded-full bg-green-500 text-white text-lg leading-none flex items-center justify-center hover:bg-green-600 transition-colors"
-                        >+</button>
+                        <button onClick={() => alterarQuantidade(peca, 1)} className="w-7 h-7 rounded-full bg-green-500 text-white text-lg leading-none flex items-center justify-center hover:bg-green-600 transition-colors">+</button>
                       </div>
                     </div>
                   )
@@ -255,10 +217,8 @@ function PedidosInner({ loja }: { loja: Loja }) {
             ) : (
               <div className="space-y-3 mb-4">
                 {itensCarrinho.map((item) => {
-                  const preco =
-                    item.preco_promocional && parseFloat(item.preco_promocional) > 0
-                      ? parseFloat(item.preco_promocional)
-                      : item.preco
+                  const preco = item.preco_promocional && parseFloat(item.preco_promocional) > 0
+                    ? parseFloat(item.preco_promocional) : item.preco
                   return (
                     <div key={item.tiny_id} className="flex justify-between items-start gap-2">
                       <div className="flex-1 min-w-0">
@@ -267,10 +227,7 @@ function PedidosInner({ loja }: { loja: Loja }) {
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <span className="text-xs font-semibold text-gray-800">{formatarPreco(preco * item.quantidade)}</span>
-                        <button
-                          onClick={() => setCarrinho((prev) => { const n = new Map(prev); n.delete(item.tiny_id); return n })}
-                          className="text-gray-300 hover:text-red-400 ml-1 text-base leading-none"
-                        >×</button>
+                        <button onClick={() => setCarrinho((prev) => { const n = new Map(prev); n.delete(item.tiny_id); return n })} className="text-gray-300 hover:text-red-400 ml-1 text-base leading-none">×</button>
                       </div>
                     </div>
                   )
@@ -298,13 +255,5 @@ function PedidosInner({ loja }: { loja: Loja }) {
         </div>
       </div>
     </div>
-  )
-}
-
-export default function PaginaPedidosClient({ loja }: { loja: Loja }) {
-  return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen text-gray-400">Carregando...</div>}>
-      <PedidosInner loja={loja} />
-    </Suspense>
   )
 }
